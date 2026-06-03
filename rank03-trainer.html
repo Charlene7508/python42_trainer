@@ -244,11 +244,151 @@
 
   .empty{padding:60px 40px;text-align:center;color:var(--ink-dim)}
   .empty .big{font-family:'Fraunces',serif;font-style:italic;font-size:32px;color:var(--ink);font-weight:300;margin-bottom:8px}
+
+  /* ===== MOBILE ===== */
+  .hamburger{
+    display:none;background:transparent;border:1px solid var(--rule);
+    color:var(--ink);padding:7px 11px;cursor:pointer;font-size:15px;
+    line-height:1;font-family:inherit;align-items:center;gap:6px;
+    transition:border-color 0.15s;min-width:44px;min-height:44px;justify-content:center;
+  }
+  .hamburger:hover{border-color:var(--ink-dim)}
+
+  .sidebar-backdrop{
+    display:none;position:fixed;inset:0;
+    background:rgba(0,0,0,0.65);z-index:199;
+    backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+  }
+  .sidebar-backdrop.visible{display:block}
+
+  .mobile-tabs{
+    display:none;border-bottom:1px solid var(--rule);
+    background:var(--bg-2);flex-shrink:0;
+  }
+  .mobile-tab-btn{
+    flex:1;background:transparent;border:0;
+    border-bottom:2px solid transparent;
+    color:var(--ink-dim);font-family:inherit;
+    font-size:10px;letter-spacing:0.15em;text-transform:uppercase;
+    padding:12px 8px;cursor:pointer;transition:all 0.15s;min-height:44px;
+  }
+  .mobile-tab-btn.active{color:var(--ink);border-bottom-color:var(--accent)}
+  .mobile-tab-btn .tab-icon{font-size:14px;display:block;margin-bottom:2px}
+
+  @media(max-width:768px){
+    .mobile-cta{display:flex !important;justify-content:center}
+
+    /* layout */
+    .shell{grid-template-columns:1fr}
+
+    /* sidebar → drawer */
+    aside{
+      position:fixed;top:0;left:0;bottom:0;
+      width:82vw;max-width:300px;
+      z-index:200;
+      transform:translateX(-100%);
+      transition:transform 0.26s cubic-bezier(0.4,0,0.2,1);
+      height:100%;height:100dvh;
+      padding-top:max(env(safe-area-inset-top,0px), 0px);
+    }
+    aside.open{transform:translateX(0)}
+
+    /* hamburger visible */
+    .hamburger{display:flex}
+
+    /* topbar */
+    .topbar{padding:0 12px;height:48px;flex-shrink:0}
+    .topbar #topRight{display:none}
+    #topStatus{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52vw}
+
+    /* mobile tabs */
+    .mobile-tabs{display:flex}
+
+    /* main layout */
+    main{display:flex;flex-direction:column;height:100dvh}
+    .content{
+      grid-template-columns:1fr;
+      flex:1;
+      height:auto;
+      min-height:0;
+      overflow:hidden;
+    }
+
+    /* panneau énoncé */
+    .panel.left{
+      padding:18px 16px 24px;
+      border-right:0;
+      height:100%;
+      overflow-y:auto;
+    }
+
+    /* panneau code + terminal */
+    .right{
+      height:100%;
+    }
+
+    /* onglet actif : cache l'autre panneau */
+    .content.tab-code .panel.left{display:none}
+    .content.tab-enonce .right{display:none}
+
+    /* editor */
+    .editor{min-height:200px}
+    textarea#code{
+      font-size:13px;
+      padding:14px 12px;
+      /* évite le zoom auto iOS sur focus */
+      font-size:max(16px, 13px);
+    }
+
+    /* terminal */
+    .terminal-wrap{min-height:160px;flex:0 0 42%}
+    .terminal{font-size:11.5px;padding:10px 12px}
+
+    /* typography */
+    h2.title{font-size:26px}
+    .panel{padding:18px 16px}
+
+    /* touch targets */
+    .btn{padding:10px 14px;min-height:44px;font-size:12px}
+    .btn-primary{min-height:44px}
+    .chip{padding:8px 12px;min-height:38px;font-size:10px}
+    .ex-item{padding:12px 18px;min-height:44px}
+
+    /* editor bar */
+    .editor-bar{padding:8px 12px}
+    .editor-bar .lbl{display:none}
+    .editor-bar .actions{gap:6px}
+
+    /* code blocks */
+    pre.code{font-size:11.5px}
+
+    /* exemples */
+    .example{padding:10px 12px}
+    .meta-row{flex-wrap:wrap;gap:8px}
+    .meta-row .tagline{font-size:10px;word-break:break-all}
+  }
+
+  /* très petit écran (iPhone SE, etc.) */
+  @media(max-width:380px){
+    h2.title{font-size:22px}
+    .panel{padding:14px 12px}
+    textarea#code{padding:10px}
+    aside{width:90vw}
+  }
+
+  /* safe area iPhone (encoche / Dynamic Island) */
+  @supports(padding-top: env(safe-area-inset-top)){
+    @media(max-width:768px){
+      .topbar{padding-top:max(10px, env(safe-area-inset-top))}
+      .topbar{height:calc(48px + env(safe-area-inset-top))}
+    }
+  }
 </style>
 </head>
 <body>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 <div class="shell">
-  <aside>
+  <aside id="sidebar">
     <div class="brand">
       <div class="tag">42 · python · rank03</div>
       <h1>grow<span class="acc">.</span><i>ing</i></h1>
@@ -265,10 +405,21 @@
 
   <main>
     <div class="topbar" id="topbar">
-      <div><span class="dot"></span><span id="topStatus">chargement de pyodide…</span></div>
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Menu exercices">☰</button>
+        <div style="display:flex;align-items:center;min-width:0"><span class="dot"></span><span id="topStatus">chargement de pyodide…</span></div>
+      </div>
       <div id="topRight">rank03.py</div>
     </div>
-    <div class="content" id="content">
+    <div class="mobile-tabs" id="mobileTabs">
+      <button class="mobile-tab-btn active" data-tab="enonce">
+        <span class="tab-icon">📋</span>Énoncé
+      </button>
+      <button class="mobile-tab-btn" data-tab="code">
+        <span class="tab-icon">⌨️</span>Code
+      </button>
+    </div>
+    <div class="content tab-enonce" id="content">
       <div class="empty">
         <div class="big">choisis un exercice.</div>
         <div>← sélectionne-en un dans la barre latérale pour commencer</div>
@@ -1850,6 +2001,9 @@ function loadExercise(id){
   activeSolutionIdx = 0;
   renderList();
   renderExercise();
+  // mobile : fermer la sidebar et revenir à l'onglet énoncé
+  closeSidebar();
+  setMobileTab("enonce");
 }
 
 function renderExercise(){
@@ -1902,6 +2056,9 @@ function renderExercise(){
 
       <div class="section-h">Solutions</div>
       ${solBlock}
+      <button class="btn btn-primary mobile-cta" onclick="setMobileTab('code')" style="width:100%;margin-top:20px;display:none">
+        ⌨️ &nbsp;Passer au code →
+      </button>
     </div>
 
     <div class="panel right" style="padding:0">
@@ -2155,6 +2312,42 @@ window.revealSolutions = revealSolutions;
 window.resetCode = resetCode;
 window.runTests = runTests;
 window.copySolution = copySolution;
+
+/* ========================================================================
+   MOBILE — hamburger + drawer + onglets
+   ======================================================================== */
+function openSidebar(){
+  $("#sidebar").classList.add("open");
+  $("#sidebarBackdrop").classList.add("visible");
+  document.body.style.overflow = "hidden";
+}
+function closeSidebar(){
+  $("#sidebar").classList.remove("open");
+  $("#sidebarBackdrop").classList.remove("visible");
+  document.body.style.overflow = "";
+}
+
+$("#hamburgerBtn").addEventListener("click", () => {
+  if($("#sidebar").classList.contains("open")) closeSidebar();
+  else openSidebar();
+});
+$("#sidebarBackdrop").addEventListener("click", closeSidebar);
+
+// Onglets mobiles
+function setMobileTab(tab){
+  const content = $("#content");
+  if(!content) return;
+  content.classList.toggle("tab-enonce", tab === "enonce");
+  content.classList.toggle("tab-code", tab === "code");
+  $$(".mobile-tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  // scroll en haut du panneau actif
+  if(tab === "enonce"){
+    const p = content.querySelector(".panel.left");
+    if(p) p.scrollTop = 0;
+  }
+}
+
+$$(".mobile-tab-btn").forEach(b => b.addEventListener("click", () => setMobileTab(b.dataset.tab)));
 
 renderList();
 </script>
