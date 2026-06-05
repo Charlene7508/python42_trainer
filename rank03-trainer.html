@@ -629,6 +629,59 @@ const EXERCISES = [
     ]
   },
   {
+    id:"py_string_permutation_checker", group:"42exam.net · rank03", title:"#05 · py_string_permutation_checker", diff:"hard",
+    statement:`Écris une fonction qui détermine si deux chaînes sont des permutations l'une de l'autre. Deux chaînes sont des permutations si elles contiennent exactement les mêmes caractères avec les mêmes fréquences.<br><br>La fonction doit :<br>• Vérifier que les deux chaînes contiennent exactement les mêmes caractères<br>• Compter les fréquences (sensible à la casse)<br>• Retourner <code>True</code> si ce sont des permutations, sinon <code>False</code><br>• Deux chaînes vides sont des permutations<br>• Traiter espaces et ponctuation comme des caractères normaux`,
+    examples:[
+      {in:'string_permutation_checker("abc", "bca")', out:"True"},
+      {in:'string_permutation_checker("abc", "def")', out:"False"},
+      {in:'string_permutation_checker("listen", "silent")', out:"True"},
+      {in:'string_permutation_checker("hello", "bello")', out:"False"},
+      {in:'string_permutation_checker("", "")', out:"True"},
+      {in:'string_permutation_checker("a", "")', out:"False"},
+      {in:'string_permutation_checker("Abc", "abc")', out:"False"},
+      {in:'string_permutation_checker("a gentleman", "elegant man")', out:"True"},
+    ],
+    hints:["Si les longueurs diffèrent, ce ne peut pas être une permutation.","Compte les fréquences de chaque caractère dans chaque chaîne.","collections.Counter compare les fréquences en une ligne — sensible à la casse par défaut."],
+    sig:"def string_permutation_checker(s1: str, s2: str) -> bool:",
+    starter:`def string_permutation_checker(s1: str, s2: str) -> bool:
+    # écris ton code ici
+    pass`,
+    tests:[
+      {args:["abc","bca"], out:true},
+      {args:["abc","def"], out:false},
+      {args:["listen","silent"], out:true},
+      {args:["hello","bello"], out:false},
+      {args:["",""], out:true},
+      {args:["a",""], out:false},
+      {args:["Abc","abc"], out:false},
+      {args:["a gentleman","elegant man"], out:true},
+      {args:["aab","bba"], out:false},
+      {args:["xyz","zyx"], out:true},
+      {args:["Hello","hello"], out:false},
+    ],
+    solutions:[
+      {name:"Counter (une ligne)", time:"O(n)", space:"O(n)", code:`from collections import Counter
+
+def string_permutation_checker(s1, s2):
+    return Counter(s1) == Counter(s2)`},
+      {name:"Tri", time:"O(n log n)", space:"O(n)", code:`def string_permutation_checker(s1, s2):
+    return sorted(s1) == sorted(s2)`},
+      {name:"Dict manuel", time:"O(n)", space:"O(n)", code:`def string_permutation_checker(s1, s2):
+    if len(s1) != len(s2):
+        return False
+    freq = {}
+    for c in s1:
+        freq[c] = freq.get(c, 0) + 1
+    for c in s2:
+        if c not in freq:
+            return False
+        freq[c] -= 1
+        if freq[c] < 0:
+            return False
+    return True`},
+    ]
+  },
+  {
     id:"py_whisper_cipher", group:"42exam.net · rank03", title:"#06 · py_whisper_cipher", diff:"easy",
     statement:`Écris une fonction qui réalise un chiffrement simple (César) en décalant les lettres d'une chaîne d'un montant donné. Les caractères non alphabétiques restent inchangés. La casse est préservée.`,
     examples:[
@@ -666,6 +719,44 @@ const EXERCISES = [
         else:
             result += c
     return result`},
+    ]
+  },
+  {
+    id:"py_cryptic_sorter", group:"42exam.net · rank03", title:"#07 · py_cryptic_sorter", diff:"hard",
+    statement:`Écris une fonction qui trie une liste de chaînes avec une priorité à trois niveaux :<br>1. <b>Tri principal</b> : par longueur (croissant)<br>2. <b>Tri secondaire</b> : lexicographique insensible à la casse (croissant)<br>3. <b>Tri tertiaire</b> : par nombre de voyelles (croissant, si longueur et ordre lexicographique sont égaux)<br><br>La fonction doit gérer les chaînes vides, les listes vides, les casses mixtes et les caractères spéciaux (ignorés pour le compte des voyelles).`,
+    examples:[
+      {in:'cryptic_sorter(["apple", "cat", "banana", "dog", "elephant"])', out:'["cat", "dog", "apple", "banana", "elephant"]'},
+      {in:'cryptic_sorter(["aaa", "bbb", "AAA", "BBB"])', out:'["aaa", "AAA", "bbb", "BBB"]'},
+      {in:'cryptic_sorter(["hello", "world", "hi", "test"])', out:'["hi", "test", "hello", "world"]'},
+      {in:'cryptic_sorter([])', out:'[]'},
+      {in:'cryptic_sorter([""])', out:'[""]'},
+    ],
+    hints:["Python's sorted() accepte un paramètre key= qui peut être un tuple — les tuples se comparent élément par élément.","key=lambda s: (len(s), s.lower(), nb_voyelles(s)) fait les trois tris en une seule passe.","Les voyelles à compter : 'aeiou' (insensible à la casse, ignorer les autres caractères)."],
+    sig:"def cryptic_sorter(strings: list[str]) -> list[str]:",
+    starter:`def cryptic_sorter(strings: list[str]) -> list[str]:
+    # écris ton code ici
+    pass`,
+    tests:[
+      {args:[["apple","cat","banana","dog","elephant"]], out:["cat","dog","apple","banana","elephant"]},
+      {args:[["aaa","bbb","AAA","BBB"]], out:["aaa","AAA","bbb","BBB"]},
+      {args:[["hello","world","hi","test"]], out:["hi","test","hello","world"]},
+      {args:[[]], out:[]},
+      {args:[[""]], out:[""]},
+      {args:[["b","a","c"]], out:["a","b","c"]},
+      {args:[["Zoo","ant","Bar"]], out:["ant","Bar","Zoo"]},
+    ],
+    solutions:[
+      {name:"sorted() avec tuple key", time:"O(n log n)", space:"O(n)", code:`def cryptic_sorter(strings):
+    def vowel_count(s):
+        return sum(1 for c in s.lower() if c in "aeiou")
+    return sorted(strings, key=lambda s: (len(s), s.lower(), vowel_count(s)))`},
+      {name:"Détaillée", time:"O(n log n)", space:"O(n)", code:`def cryptic_sorter(strings):
+    def sort_key(s):
+        length = len(s)
+        alpha = s.lower()
+        vowels = sum(1 for c in s.lower() if c in "aeiou")
+        return (length, alpha, vowels)
+    return sorted(strings, key=sort_key)`},
     ]
   },
   {
